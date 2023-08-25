@@ -1,0 +1,7 @@
+-r requirements.txt
+
+# Install this package in editable mode
+-e .
+
+build==0.10.0
+twine==4.0.2

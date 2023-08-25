@@ -1,0 +1,4 @@
+click==8.1.6
+cloup==3.0.0
+Pillow==9.5.0
+typing-extensions==4.7.1

@@ -1,0 +1,51 @@
+import bpy
+import sys
+import argparse
+
+
+def parse_args():
+    try:
+        index = sys.argv.index('--') + 1
+    except ValueError:
+        index = len(sys.argv)
+    argv = sys.argv[index:]
+    script_name = sys.argv[index - 1]
+
+    parser = argparse.ArgumentParser(
+        prog        = script_name,
+        description = "Render Minecraft Mineways obj file"
+    )
+    parser.add_argument("obj_path",    type=str, help="Path to the obj file")
+    parser.add_argument("output_path", type=str, help="Path to where to save the rendered image")
+    parser.add_argument("--exposure",  type=float, default=0, help="Exposure for post-processing (signed)")
+
+    return parser.parse_args(argv)
+
+
+def mc_import(obj_path: str):
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.ops.import_scene.obj(filepath=obj_path)
+    bpy.context.view_layer.objects.active = bpy.context.selected_objects[0]
+
+
+def mc_frame():
+    bpy.ops.view3d.camera_to_view_selected()
+
+
+def mc_render(output_path: str, exposure: float):
+    bpy.context.scene.node_tree.nodes['Exposure'].inputs['Exposure'].default_value = exposure
+    bpy.context.scene.render.filepath = output_path
+    bpy.ops.render.render(animation=True)
+
+
+def main():
+    print("==== Begin python script ====")
+    args = parse_args()
+
+    mc_import(args.obj_path)
+    mc_frame()
+    mc_render(args.output_path, args.exposure)
+
+
+if __name__ == "__main__":
+    main()
