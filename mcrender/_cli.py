@@ -21,7 +21,9 @@ from mcrender import render
 @cloup.option("--trim/--no-trim",                         help="Trim the output image.",                 default=True)
 @cloup.option("--mineways-cmd",   metavar="<cmd>",        help="Command to run Mineways.",               type=str, default="mineways")
 @cloup.option("--blender-cmd",    metavar="<cmd>",        help="Command to run Blender.",                type=str, default="blender")
-def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], output_path: str, rotation: int, exposure: float, trim: bool, mineways_cmd: str, blender_cmd: str):
+@cloup.option("--verbose", "-v", "verbose",               help="Print more information.",                flag_value=True)
+@cloup.option("--quiet",   "-q", "verbose",               help="Cancel a previous --verbose.",           flag_value=False, default=False, show_default=False)
+def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], output_path: str, rotation: int, exposure: float, trim: bool, mineways_cmd: str, blender_cmd: str, verbose: bool):
     """
     Render a Minecraft world snippet with Mineways and Blender.
 
@@ -66,5 +68,6 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
         exposure     = exposure,
         trim         = trim,
         mineways_cmd = mineways_cmd,
-        blender_cmd  = blender_cmd
+        blender_cmd  = blender_cmd,
+        verbose      = verbose
     )

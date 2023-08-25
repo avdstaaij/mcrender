@@ -19,6 +19,7 @@ __version__          = "0.1.0"
 import subprocess
 from tempfile import TemporaryDirectory
 import os
+import sys
 
 from PIL import Image
 
@@ -115,8 +116,12 @@ def render(
     exposure:     float = 0,
     trim:         bool  = False,
     mineways_cmd: str   = "mineways",
-    blender_cmd:  str   = "blender"
+    blender_cmd:  str   = "blender",
+    verbose:      bool  = False,
 ):
     with TemporaryDirectory() as tmpDir:
+        if verbose: print("Running Mineways...", file=sys.stderr)
         mineways_make_obj(tmpDir, "snippet", world_path, x, y, z, size_x, size_y, size_z, rotation, mineways_cmd)
+        if verbose: print("Rendering...", file=sys.stderr)
         blender_render_obj(output_path, f"{tmpDir}/snippet.obj", exposure, trim, blender_cmd)
+        if verbose: print(f"Created {output_path}", file=sys.stderr)
