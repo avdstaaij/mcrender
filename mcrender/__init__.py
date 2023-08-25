@@ -24,8 +24,8 @@ from PIL import Image
 
 
 SCRIPT_DIR          = os.path.dirname(os.path.realpath(__file__))
-BLENDER_BLEND_PATH  = f"{SCRIPT_DIR}/_data/blender/RenderFile.blend"
-BLENDER_SCRIPT_PATH = f"{SCRIPT_DIR}/_data/blender/import_obj.py.txt"
+BLENDER_BLEND_PATH  = f"{SCRIPT_DIR}/_data/blender/mineways-isometric.blend"
+BLENDER_SCRIPT_PATH = f"{SCRIPT_DIR}/_data/blender/mineways-isometric.py.txt"
 
 
 # --------------------------------------------------------------------------------------------------
