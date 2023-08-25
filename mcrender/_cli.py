@@ -17,8 +17,8 @@ from mcrender import render
 @cloup.option("--pos",  "-p",     metavar=" <x> <y> <z>", help="Render-box corner",                      type=int, nargs=3, multiple=True)
 @cloup.option("--size", "-s",     metavar="<x> <y> <z>",  help="Render-box size",                        type=int, nargs=3)
 @cloup.option("--rotation",       metavar="{0,1,2,3}",    help="Rotation of the camera.",                type=int, default=0)
-@cloup.option("--exposure",       metavar="<float>",      help="Exposure for post-processing.", type=float, default=0)
-@cloup.option("--trim/--no-trim",                         help="Trim the output image.",                 default=False)
+@cloup.option("--exposure",       metavar="<float>",      help="Exposure for post-processing.",          type=float, default=0)
+@cloup.option("--trim/--no-trim",                         help="Trim the output image.",                 default=True)
 @cloup.option("--mineways-cmd",   metavar="<cmd>",        help="Command to run Mineways.",               type=str, default="mineways")
 @cloup.option("--blender-cmd",    metavar="<cmd>",        help="Command to run Blender.",                type=str, default="blender")
 def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], output_path: str, rotation: int, exposure: float, trim: bool, mineways_cmd: str, blender_cmd: str):
