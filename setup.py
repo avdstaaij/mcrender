@@ -51,7 +51,8 @@ setup(
     python_requires=">=3.7, <4",
     install_requires=[
         "cloup >= 3.0.0",
-        "Pillow"
+        "Pillow",
+        "platformdirs",
     ],
     zip_safe=False
 )

@@ -32,6 +32,7 @@ BLENDER_SCRIPT_PATH = f"{SCRIPT_DIR}/_data/blender/mineways-isometric.py.txt"
 # --------------------------------------------------------------------------------------------------
 # Mineways
 
+
 # Inspired by https://github.com/Mawiszus/World-GAN/blob/main/minecraft/level_renderer.py
 def mineways_make_obj(
     output_dir_path: str,
