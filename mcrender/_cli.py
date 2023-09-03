@@ -1,11 +1,12 @@
 from typing import Optional, Tuple
+import sys
 
 from click import UsageError
 import cloup
 
 from mcrender import render
-from mcrender._config import read_config_file, CONFIG_PATH
-from mcrender.exceptions import ConfigAccessError
+from mcrender._config import CONFIG_PATH
+from mcrender.exceptions import ConfigAccessError, MinewaysCommandNotSetError, BlenderCommandNotSetError
 
 
 def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[int]:
@@ -59,33 +60,31 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
     2. Using two --pos options: one for each corner (inclusive).
     """
 
-    try:
-        if mineways_cmd is None:
-            mineways_cmd = read_config_file().mineways_cmd
-            if mineways_cmd is None:
-                raise UsageError(f"You must either set --mineways-cmd, or set mineways-cmd in {CONFIG_PATH}")
-        if blender_cmd is None:
-            blender_cmd = read_config_file().blender_cmd
-            if blender_cmd is None:
-                raise UsageError(f"You must either set --blender-cmd, or set blender-cmd in {CONFIG_PATH}")
-    except ConfigAccessError as e:
-        raise UsageError(str(e)) from e
-
     box = parse_box_spec(pos, size)
 
-    render(
-        output_path  = output_path,
-        world_path   = world_path,
-        x            = box[0],
-        y            = box[1],
-        z            = box[2],
-        size_x       = box[3],
-        size_y       = box[4],
-        size_z       = box[5],
-        rotation     = rotation,
-        exposure     = exposure,
-        trim         = trim,
-        mineways_cmd = mineways_cmd,
-        blender_cmd  = blender_cmd,
-        verbose      = verbose
-    )
+    try:
+        render(
+            output_path  = output_path,
+            world_path   = world_path,
+            x            = box[0],
+            y            = box[1],
+            z            = box[2],
+            size_x       = box[3],
+            size_y       = box[4],
+            size_z       = box[5],
+            rotation     = rotation,
+            exposure     = exposure,
+            trim         = trim,
+            mineways_cmd = mineways_cmd,
+            blender_cmd  = blender_cmd,
+            verbose      = verbose
+        )
+    except ConfigAccessError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except MinewaysCommandNotSetError:
+        print(f"Error: You must either set --mineways-cmd, or set mineways-cmd in {CONFIG_PATH}", file=sys.stderr)
+        sys.exit(1)
+    except BlenderCommandNotSetError:
+        print(f"Error: You must either set --blender-cmd, or set blender-cmd in {CONFIG_PATH}", file=sys.stderr)
+        sys.exit(1)
