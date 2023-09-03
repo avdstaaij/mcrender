@@ -16,6 +16,7 @@ __version__          = "0.1.0"
 # ==================================================================================================
 
 
+from typing import Optional
 import subprocess
 from tempfile import TemporaryDirectory
 import os
@@ -23,10 +24,13 @@ import sys
 
 from PIL import Image
 
+from mcrender._config import read_config_file as _read_config_file
+from mcrender.exceptions import MinewaysCommandNotSetError, BlenderCommandNotSetError
 
-SCRIPT_DIR          = os.path.dirname(os.path.realpath(__file__))
-BLENDER_BLEND_PATH  = f"{SCRIPT_DIR}/_data/blender/mineways-isometric.blend"
-BLENDER_SCRIPT_PATH = f"{SCRIPT_DIR}/_data/blender/mineways-isometric.py.txt"
+
+_SCRIPT_DIR          = os.path.dirname(os.path.realpath(__file__))
+_BLENDER_BLEND_PATH  = f"{_SCRIPT_DIR}/_data/blender/mineways-isometric.blend"
+_BLENDER_SCRIPT_PATH = f"{_SCRIPT_DIR}/_data/blender/mineways-isometric.py.txt"
 
 
 # --------------------------------------------------------------------------------------------------
@@ -45,10 +49,15 @@ def mineways_make_obj(
     size_y:          int,
     size_z:          int,
     rotation:        int = 0,
-    mineways_cmd:    str = "mineways"
+    mineways_cmd:    Optional[str] = None
  ):
     if size_x <= 0 or size_y <= 0 or size_z <= 0:
         raise ValueError("The size must be positive in each dimension.")
+
+    if mineways_cmd is None:
+        mineways_cmd = _read_config_file().mineways_cmd
+        if mineways_cmd is None:
+            raise MinewaysCommandNotSetError("The Mineways command is set neither in the config file nor as an argument.")
 
     with TemporaryDirectory() as tmpDir:
         scriptPath = tmpDir + "/script.mwscript"
@@ -85,10 +94,15 @@ def blender_render_obj(
     obj_path:    str,
     exposure:    float = 0,
     trim:        bool  = False,
-    blender_cmd: str   = "blender"
+    blender_cmd: Optional[str] = None
 ):
+    if blender_cmd is None:
+        blender_cmd = _read_config_file().blender_cmd
+        if blender_cmd is None:
+            raise BlenderCommandNotSetError("The Blender command is set neither in the config file nor as an argument.")
+
     with TemporaryDirectory() as tmpDir:
-        cmd  = [blender_cmd, "--background", BLENDER_BLEND_PATH, "--python", BLENDER_SCRIPT_PATH, "--", "--exposure", str(exposure), obj_path, f"{tmpDir}/output"]
+        cmd  = [blender_cmd, "--background", _BLENDER_BLEND_PATH, "--python", _BLENDER_SCRIPT_PATH, "--", "--exposure", str(exposure), obj_path, f"{tmpDir}/output"]
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
         if trim:
@@ -116,8 +130,8 @@ def render(
     rotation:     int   = 0,
     exposure:     float = 0,
     trim:         bool  = False,
-    mineways_cmd: str   = "mineways",
-    blender_cmd:  str   = "blender",
+    mineways_cmd: Optional[str] = None,
+    blender_cmd:  Optional[str] = None,
     verbose:      bool  = False,
 ):
     with TemporaryDirectory() as tmpDir:
