@@ -4,7 +4,8 @@ import sys
 from click import UsageError
 import cloup
 
-from mcrender import render, ConfigAccessError, MinewaysCommandNotSetError, BlenderCommandNotSetError, _CONFIG_PATH, __version__
+import mcrender
+from mcrender._util import eprint
 
 
 def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[int]:
@@ -60,13 +61,13 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
     """
 
     if version:
-        print(f"mcrender {__version__}")
-        sys.exit(0)
+        print(f"mcrender {mcrender.__version__}")
+        return
 
     box = parse_box_spec(pos, size)
 
     try:
-        render(
+        mcrender.render(
             output_path  = output_path,
             world_path   = world_path,
             x            = box[0],
@@ -82,12 +83,48 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
             blender_cmd  = blender_cmd,
             verbose      = verbose
         )
-    except ConfigAccessError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-    except MinewaysCommandNotSetError:
-        print(f"Error: You must either set --mineways-cmd, or set mineways-cmd in {_CONFIG_PATH}", file=sys.stderr)
-        sys.exit(1)
-    except BlenderCommandNotSetError:
-        print(f"Error: You must either set --blender-cmd, or set blender-cmd in {_CONFIG_PATH}", file=sys.stderr)
-        sys.exit(1)
+        return
+    except mcrender.ConfigAccessError as e:
+        eprint(f"\nError: {e}", file=sys.stderr)
+    except mcrender.MinewaysCommandNotSetError:
+        eprint(f"\nError: You must either set --mineways-cmd, or set mineways-cmd in\n`{mcrender._CONFIG_PATH}`") # pylint: disable=protected-access
+    except mcrender.BlenderCommandNotSetError:
+        eprint(f"\nError: You must either set --blender-cmd, or set blender-cmd in\n`{mcrender._CONFIG_PATH}`") # pylint: disable=protected-access
+    except mcrender.MinewaysFileNotFoundError as e:
+        eprint(f"\nError: Mineways could not be launched.\n    {e.__cause__}\n")
+        if mineways_cmd is not None:
+            eprint(
+                 "Make sure that you have downloaded Mineways and that your specified",
+                f"command (`{mineways_cmd}`) runs it.",
+                sep="\n"
+            )
+        else:
+            eprint(
+                "Make sure that you have downloaded Mineways and that your configured",
+                f"mineways-cmd (in `{mcrender._CONFIG_PATH}`) runs it.", # pylint: disable=protected-access
+                sep="\n"
+            )
+    except mcrender.BlenderFileNotFoundError as e:
+        eprint(f"\nError: Blender could not be launched.\n    {e.__cause__}\n")
+        if blender_cmd is not None:
+            eprint(
+                 "Make sure that you have downloaded Blender and that your specified",
+                f"command (`{blender_cmd}`) runs it.",
+                sep="\n"
+            )
+        else:
+            eprint(
+                "Make sure that you have downloaded Blender and that your configured",
+                f"blender-cmd (in `{mcrender._CONFIG_PATH}`) runs it.", # pylint: disable=protected-access
+                sep="\n"
+            )
+    except mcrender.MinewaysLaunchError as e:
+        eprint(f"\nError: Mineways could not be launched.\n    {e.__cause__}\n")
+    except mcrender.BlenderLaunchError as e:
+        eprint(f"\nError: Blender could not be launched.\n    {e.__cause__}\n")
+    except mcrender.MinewaysError as e:
+        eprint(f"\nError: Mineways returned an error.\n    {e.__cause__}\n")
+    except mcrender.BlenderError as e:
+        eprint(f"\nError: Blender returned an error.\n    {e.__cause__}\n")
+
+    sys.exit(1)

@@ -29,6 +29,8 @@ from configparser import ConfigParser
 import platformdirs
 from PIL import Image
 
+from mcrender._util import eprint
+
 
 _SCRIPT_DIR          = os.path.dirname(os.path.realpath(__file__))
 _BLENDER_BLEND_PATH  = f"{_SCRIPT_DIR}/_data/blender/mineways-isometric.blend"
@@ -49,16 +51,36 @@ class ConfigAccessError(MCRenderError):
     """Raised when the config file cannot be accessed."""
 
 
-class CommandNotSetError(MCRenderError):
-    """Raised when a dependency command is not set."""
-
-
-class MinewaysCommandNotSetError(CommandNotSetError):
+class MinewaysCommandNotSetError(MCRenderError):
     """Raised when the Mineways command is not set."""
 
 
-class BlenderCommandNotSetError(CommandNotSetError):
+class MinewaysLaunchError(MCRenderError):
+    """Raised when the Mineways command cannot be launched."""
+
+
+class MinewaysFileNotFoundError(MinewaysLaunchError):
+    """Raised when the Mineways command's file cannot be found."""
+
+
+class MinewaysError(MCRenderError):
+    """Raised when Mineways returns an error."""
+
+
+class BlenderCommandNotSetError(MCRenderError):
     """Raised when the Blender command is not set."""
+
+
+class BlenderLaunchError(MCRenderError):
+    """Raised when the Blender command cannot be launched."""
+
+
+class BlenderFileNotFoundError(BlenderLaunchError):
+    """Raised when the Blender command's file cannot be found."""
+
+
+class BlenderError(MCRenderError):
+    """Raised when Blender returns an error."""
 
 
 # --------------------------------------------------------------------------------------------------
@@ -142,8 +164,15 @@ def mineways_make_obj(
 
         os.makedirs(output_dir_path, exist_ok=True)
 
-        cmd = [mineways_cmd, "-m", "-s", "none", scriptPath]
-        subprocess.run(cmd, universal_newlines=True, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        try:
+            cmd = [mineways_cmd, "-m", "-s", "none", scriptPath]
+            subprocess.run(cmd, universal_newlines=True, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        except FileNotFoundError as e:
+            raise MinewaysFileNotFoundError(f"Mineways could not be launched: {e}") from e
+        except OSError as e:
+            raise MinewaysLaunchError(f"Mineways could not be launched: {e}") from e
+        except subprocess.CalledProcessError as e:
+            raise MinewaysError(f"Mineways returned an error: {e}") from e
 
 
 # --------------------------------------------------------------------------------------------------
@@ -163,8 +192,15 @@ def blender_render_obj(
             raise BlenderCommandNotSetError("The Blender command is set neither in the config file nor as an argument.")
 
     with TemporaryDirectory() as tmpDir:
-        cmd  = [blender_cmd, "--background", _BLENDER_BLEND_PATH, "--python", _BLENDER_SCRIPT_PATH, "--", "--exposure", str(exposure), obj_path, f"{tmpDir}/output"]
-        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        try:
+            cmd  = [blender_cmd, "--background", _BLENDER_BLEND_PATH, "--python", _BLENDER_SCRIPT_PATH, "--", "--exposure", str(exposure), obj_path, f"{tmpDir}/output"]
+            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        except FileNotFoundError as e:
+            raise BlenderFileNotFoundError(f"Blender could not be launched: {e}") from e
+        except OSError as e:
+            raise BlenderLaunchError(f"Blender could not be launched: {e}") from e
+        except subprocess.CalledProcessError as e:
+            raise BlenderError(f"Blender returned an error: {e}") from e
 
         if trim:
             with Image.open(f"{tmpDir}/output0001.png") as image:
@@ -196,8 +232,8 @@ def render(
     verbose:      bool  = False,
 ):
     with TemporaryDirectory() as tmpDir:
-        if verbose: print("Running Mineways...", file=sys.stderr)
+        if verbose: eprint("Running Mineways...")
         mineways_make_obj(tmpDir, "snippet", world_path, x, y, z, size_x, size_y, size_z, rotation, mineways_cmd)
-        if verbose: print("Rendering...", file=sys.stderr)
+        if verbose: eprint("Rendering...")
         blender_render_obj(output_path, f"{tmpDir}/snippet.obj", exposure, trim, blender_cmd)
-        if verbose: print(f"Created {output_path}", file=sys.stderr)
+        if verbose: eprint(f"Created {output_path}")
