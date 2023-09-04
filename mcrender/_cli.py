@@ -4,7 +4,7 @@ import sys
 from click import UsageError
 import cloup
 
-from mcrender import render, ConfigAccessError, MinewaysCommandNotSetError, BlenderCommandNotSetError, _CONFIG_PATH
+from mcrender import render, ConfigAccessError, MinewaysCommandNotSetError, BlenderCommandNotSetError, _CONFIG_PATH, __version__
 
 
 def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[int]:
@@ -48,7 +48,8 @@ def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[
 @cloup.option("--blender-cmd",    metavar="<cmd>",        help="Command to run Blender.",                type=str)
 @cloup.option("--verbose", "-v", "verbose",               help="Print more information.",                flag_value=True)
 @cloup.option("--quiet",   "-q", "verbose",               help="Cancel a previous --verbose.",           flag_value=False, default=False, show_default=False)
-def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], output_path: str, rotation: int, exposure: float, trim: bool, mineways_cmd: Optional[str], blender_cmd: Optional[str], verbose: bool):
+@cloup.option("--version",                                help="Print version and exit.",                is_flag=True)
+def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], output_path: str, rotation: int, exposure: float, trim: bool, mineways_cmd: Optional[str], blender_cmd: Optional[str], verbose: bool, version: bool):
     """
     Render a Minecraft world snippet with Mineways and Blender.
 
@@ -57,6 +58,10 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
     1. Using --pos and --size.
     2. Using two --pos options: one for each corner (inclusive).
     """
+
+    if version:
+        print(f"mcrender {__version__}")
+        sys.exit(0)
 
     box = parse_box_spec(pos, size)
 
