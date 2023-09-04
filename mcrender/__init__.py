@@ -17,20 +17,81 @@ __version__          = "0.1.0"
 
 
 from typing import Optional
+from dataclasses import dataclass
+from functools import lru_cache
 import subprocess
-from tempfile import TemporaryDirectory
 import os
 import sys
+import shutil
+from tempfile import TemporaryDirectory
+from configparser import ConfigParser
 
+import platformdirs
 from PIL import Image
-
-from mcrender._config import read_config_file as _read_config_file
-from mcrender.exceptions import MinewaysCommandNotSetError, BlenderCommandNotSetError
 
 
 _SCRIPT_DIR          = os.path.dirname(os.path.realpath(__file__))
 _BLENDER_BLEND_PATH  = f"{_SCRIPT_DIR}/_data/blender/mineways-isometric.blend"
 _BLENDER_SCRIPT_PATH = f"{_SCRIPT_DIR}/_data/blender/mineways-isometric.py.txt"
+_DEFAULT_CONFIG_PATH = f"{_SCRIPT_DIR}/_data/default-config.conf"
+_CONFIG_PATH         = os.path.join(platformdirs.user_config_dir("mcrender", ensure_exists=True), "config.conf")
+
+
+# --------------------------------------------------------------------------------------------------
+# Exception classes
+
+
+class MCRenderError(Exception):
+    """Base class for all mcrender exceptions."""
+
+
+class ConfigAccessError(MCRenderError):
+    """Raised when the config file cannot be accessed."""
+
+
+class CommandNotSetError(MCRenderError):
+    """Raised when a dependency command is not set."""
+
+
+class MinewaysCommandNotSetError(CommandNotSetError):
+    """Raised when the Mineways command is not set."""
+
+
+class BlenderCommandNotSetError(CommandNotSetError):
+    """Raised when the Blender command is not set."""
+
+
+# --------------------------------------------------------------------------------------------------
+# Config file
+
+
+@dataclass
+class _Config:
+    mineways_cmd: Optional[str] = "mineways"
+    blender_cmd:  Optional[str] = "blender"
+
+
+@lru_cache(maxsize=None)
+def _read_config_file():
+    """Reads and parses the config file."""
+
+    if not os.path.isfile(_CONFIG_PATH):
+        try:
+            shutil.copy2(_DEFAULT_CONFIG_PATH, _CONFIG_PATH)
+        except OSError as e:
+            raise ConfigAccessError(f"Cannot write to config file {_CONFIG_PATH}") from e
+
+    parser = ConfigParser()
+    try:
+        with open(_CONFIG_PATH, "r", encoding="utf-8") as file:
+            parser.read_string("[DEFAULT]\n" + file.read())
+    except OSError as e:
+        raise ConfigAccessError(f"Cannot read config file {_CONFIG_PATH}") from e
+
+    return _Config(
+        mineways_cmd = parser.get("DEFAULT", "mineways-cmd", fallback=None),
+        blender_cmd  = parser.get("DEFAULT", "blender-cmd",  fallback=None),
+    )
 
 
 # --------------------------------------------------------------------------------------------------

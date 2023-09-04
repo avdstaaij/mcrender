@@ -4,9 +4,7 @@ import sys
 from click import UsageError
 import cloup
 
-from mcrender import render
-from mcrender._config import CONFIG_PATH
-from mcrender.exceptions import ConfigAccessError, MinewaysCommandNotSetError, BlenderCommandNotSetError
+from mcrender import render, ConfigAccessError, MinewaysCommandNotSetError, BlenderCommandNotSetError, _CONFIG_PATH
 
 
 def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[int]:
@@ -83,8 +81,8 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
     except MinewaysCommandNotSetError:
-        print(f"Error: You must either set --mineways-cmd, or set mineways-cmd in {CONFIG_PATH}", file=sys.stderr)
+        print(f"Error: You must either set --mineways-cmd, or set mineways-cmd in {_CONFIG_PATH}", file=sys.stderr)
         sys.exit(1)
     except BlenderCommandNotSetError:
-        print(f"Error: You must either set --blender-cmd, or set blender-cmd in {CONFIG_PATH}", file=sys.stderr)
+        print(f"Error: You must either set --blender-cmd, or set blender-cmd in {_CONFIG_PATH}", file=sys.stderr)
         sys.exit(1)
