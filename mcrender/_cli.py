@@ -38,8 +38,8 @@ def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[
 
 # pylint: disable=no-value-for-parameter
 @cloup.command(context_settings={"show_default": True})
-@cloup.argument("world-path",  metavar="<world path>",  type=cloup.Path())
-@cloup.argument("output-path", metavar="<output path>", type=str)
+@cloup.argument("world-path",  metavar="<world path>",  type=cloup.Path(exists=True, file_okay=False))
+@cloup.argument("output-path", metavar="<output path>", type=cloup.Path())
 @cloup.option("--pos",  "-p",     metavar=" <x> <y> <z>", help="Render-box corner",                      type=int, nargs=3, multiple=True)
 @cloup.option("--size", "-s",     metavar="<x> <y> <z>",  help="Render-box size",                        type=int, nargs=3)
 @cloup.option("--rotation",       metavar="{0,1,2,3}",    help="Rotation of the camera.",                type=int, default=0)
@@ -87,21 +87,21 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
     except mcrender.ConfigAccessError as e:
         eprint(f"\nError: {e}", file=sys.stderr)
     except mcrender.MinewaysCommandNotSetError:
-        eprint(f"\nError: You must either set --mineways-cmd, or set mineways-cmd in\n`{mcrender._CONFIG_PATH}`") # pylint: disable=protected-access
+        eprint(f"\nError: You must either set --mineways-cmd, or set mineways-cmd in\n{repr(mcrender._CONFIG_PATH)}.") # pylint: disable=protected-access
     except mcrender.BlenderCommandNotSetError:
-        eprint(f"\nError: You must either set --blender-cmd, or set blender-cmd in\n`{mcrender._CONFIG_PATH}`") # pylint: disable=protected-access
+        eprint(f"\nError: You must either set --blender-cmd, or set blender-cmd in\n{repr(mcrender._CONFIG_PATH)}.") # pylint: disable=protected-access
     except mcrender.MinewaysFileNotFoundError as e:
         eprint(f"\nError: Mineways could not be launched.\n    {e.__cause__}\n")
         if mineways_cmd is not None:
             eprint(
                  "Make sure that you have downloaded Mineways and that your specified",
-                f"command (`{mineways_cmd}`) runs it.",
+                f"command ({repr(mineways_cmd)}) runs it.",
                 sep="\n"
             )
         else:
             eprint(
                 "Make sure that you have downloaded Mineways and that your configured",
-                f"mineways-cmd (in `{mcrender._CONFIG_PATH}`) runs it.", # pylint: disable=protected-access
+                f"mineways-cmd (in {repr(mcrender._CONFIG_PATH)}) runs it.", # pylint: disable=protected-access
                 sep="\n"
             )
     except mcrender.BlenderFileNotFoundError as e:
@@ -109,13 +109,13 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
         if blender_cmd is not None:
             eprint(
                  "Make sure that you have downloaded Blender and that your specified",
-                f"command (`{blender_cmd}`) runs it.",
+                f"command ({repr(blender_cmd)}) runs it.",
                 sep="\n"
             )
         else:
             eprint(
                 "Make sure that you have downloaded Blender and that your configured",
-                f"blender-cmd (in `{mcrender._CONFIG_PATH}`) runs it.", # pylint: disable=protected-access
+                f"blender-cmd (in {repr(mcrender._CONFIG_PATH)}) runs it.", # pylint: disable=protected-access
                 sep="\n"
             )
     except mcrender.MinewaysLaunchError as e:
@@ -123,7 +123,16 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
     except mcrender.BlenderLaunchError as e:
         eprint(f"\nError: Blender could not be launched.\n    {e.__cause__}\n")
     except mcrender.MinewaysError as e:
-        eprint(f"\nError: Mineways returned an error.\n    {e.__cause__}\n")
+        eprint(f"\nError: {e}\n")
+    except mcrender.MinewaysBadWorldError as e:
+        eprint(
+             "\nError: Mineways could not load the specified world",
+            f"{repr(world_path)}.",
+            "",
+            "There might still be a Mineways window open that you'll have to close",
+            "manually. Sorry about that, I'm afraid I don't know how to prevent it.",
+            sep="\n"
+        )
     except mcrender.BlenderError as e:
         eprint(f"\nError: Blender returned an error.\n    {e.__cause__}\n")
 

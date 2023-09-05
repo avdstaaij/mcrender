@@ -19,9 +19,9 @@ __version__          = "0.1.0"
 from typing import Optional
 from dataclasses import dataclass
 from functools import lru_cache
+import time
 import subprocess
 import os
-import sys
 import shutil
 from tempfile import TemporaryDirectory
 from configparser import ConfigParser
@@ -65,6 +65,10 @@ class MinewaysFileNotFoundError(MinewaysLaunchError):
 
 class MinewaysError(MCRenderError):
     """Raised when Mineways returns an error."""
+
+
+class MinewaysBadWorldError(MCRenderError):
+    """Raised when Mineways cannot load the world."""
 
 
 class BlenderCommandNotSetError(MCRenderError):
@@ -143,14 +147,12 @@ def mineways_make_obj(
             raise MinewaysCommandNotSetError("The Mineways command is set neither in the config file nor as an argument.")
 
     with TemporaryDirectory() as tmpDir:
-        scriptPath = tmpDir + "/script.mwscript"
+        scriptPath = f"{tmpDir}/script.mwscript"
+        logPath    = f"{tmpDir}/log.txt"
 
         with open(scriptPath, "w", encoding="utf-8") as f:
             # https://www.realtimerendering.com/erich/minecraft/public/mineways/scripting.html
             f.write(f"Save Log file: {tmpDir}/log.txt\n")
-            f.write("Show informational: false\n")
-            f.write("Show warning: false\n")
-            f.write("Show error: false\n")
             f.write(f"Minecraft world: {world_path}\n")
             f.write(f"Selection location min to max: {x}, {y}, {z} to {x + size_x - 1}, {y + size_y - 1}, {z + size_z - 1}\n")
             f.write("Set render type: Wavefront OBJ absolute indices\n")
@@ -164,15 +166,33 @@ def mineways_make_obj(
 
         os.makedirs(output_dir_path, exist_ok=True)
 
+        # If Mineways cannot find the world, it will write an error message to the log file, but it
+        # won't stop. There seems to be no command-line option to make it stop in this case, either.
+        # To handle this, we run Mineways in the background, periodically check the log file, and
+        # kill the process if we see the error message.
+
         try:
-            cmd = [mineways_cmd, "-m", "-s", "none", scriptPath]
-            subprocess.run(cmd, universal_newlines=True, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            cmd = [mineways_cmd, "-m", "-suppress", "-s", "none", scriptPath]
+            process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         except FileNotFoundError as e:
             raise MinewaysFileNotFoundError(f"Mineways could not be launched: {e}") from e
         except OSError as e:
             raise MinewaysLaunchError(f"Mineways could not be launched: {e}") from e
-        except subprocess.CalledProcessError as e:
-            raise MinewaysError(f"Mineways returned an error: {e}") from e
+
+        while True:
+            if process.poll() is not None:
+                if process.returncode != 0:
+                    raise MinewaysError(f"Mineways returned an error ({process.returncode})")
+                break
+            try:
+                with open(logPath, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if line.startswith("Error reading line 2: Mineways attempted to load world"):
+                            process.kill()
+                            raise MinewaysBadWorldError(f"Mineways could not load the world {repr(world_path)}")
+            except FileNotFoundError:
+                pass
+            time.sleep(0.1)
 
 
 # --------------------------------------------------------------------------------------------------
