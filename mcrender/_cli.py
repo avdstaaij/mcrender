@@ -49,8 +49,8 @@ def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[
 @cloup.option("--blender-cmd",    metavar="<cmd>",        help="Command to run Blender.",                type=str)
 @cloup.option("--verbose", "-v", "verbose",               help="Print more information.",                flag_value=True)
 @cloup.option("--quiet",   "-q", "verbose",               help="Cancel a previous --verbose.",           flag_value=False, default=False, show_default=False)
-@cloup.option("--version",                                help="Print version and exit.",                is_flag=True)
-def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], output_path: str, rotation: int, exposure: float, trim: bool, mineways_cmd: Optional[str], blender_cmd: Optional[str], verbose: bool, version: bool):
+@cloup.version_option(mcrender.__version__, package_name="mcrender", prog_name="mcrender", message="%(prog)s %(version)s")
+def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], output_path: str, rotation: int, exposure: float, trim: bool, mineways_cmd: Optional[str], blender_cmd: Optional[str], verbose: bool):
     """
     Render a Minecraft world snippet with Mineways and Blender.
 
@@ -59,10 +59,6 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
     1. Using --pos and --size.
     2. Using two --pos options: one for each corner (inclusive).
     """
-
-    if version:
-        print(f"mcrender {mcrender.__version__}")
-        return
 
     box = parse_box_spec(pos, size)
 
