@@ -86,7 +86,7 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
         eprint(f"\nError: You must either set --mineways-cmd, or set mineways-cmd in\n{repr(mcrender._CONFIG_PATH)}.") # pylint: disable=protected-access
     except mcrender.BlenderCommandNotSetError:
         eprint(f"\nError: You must either set --blender-cmd, or set blender-cmd in\n{repr(mcrender._CONFIG_PATH)}.") # pylint: disable=protected-access
-    except mcrender.MinewaysFileNotFoundError as e:
+    except mcrender.MinewaysLaunchError as e:
         eprint(f"\nError: Mineways could not be launched.\n    {e.__cause__}\n")
         if mineways_cmd is not None:
             eprint(
@@ -100,7 +100,7 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
                 f"mineways-cmd (in {repr(mcrender._CONFIG_PATH)}) runs it.", # pylint: disable=protected-access
                 sep="\n"
             )
-    except mcrender.BlenderFileNotFoundError as e:
+    except mcrender.BlenderLaunchError as e:
         eprint(f"\nError: Blender could not be launched.\n    {e.__cause__}\n")
         if blender_cmd is not None:
             eprint(
@@ -114,10 +114,6 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
                 f"blender-cmd (in {repr(mcrender._CONFIG_PATH)}) runs it.", # pylint: disable=protected-access
                 sep="\n"
             )
-    except mcrender.MinewaysLaunchError as e:
-        eprint(f"\nError: Mineways could not be launched.\n    {e.__cause__}\n")
-    except mcrender.BlenderLaunchError as e:
-        eprint(f"\nError: Blender could not be launched.\n    {e.__cause__}\n")
     except mcrender.MinewaysError as e:
         eprint(f"\nError: {e}\n")
     except mcrender.MinewaysBadWorldError as e:

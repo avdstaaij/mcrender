@@ -59,10 +59,6 @@ class MinewaysLaunchError(MCRenderError):
     """Raised when the Mineways command cannot be launched."""
 
 
-class MinewaysFileNotFoundError(MinewaysLaunchError):
-    """Raised when the Mineways command's file cannot be found."""
-
-
 class MinewaysError(MCRenderError):
     """Raised when Mineways returns an error."""
 
@@ -77,10 +73,6 @@ class BlenderCommandNotSetError(MCRenderError):
 
 class BlenderLaunchError(MCRenderError):
     """Raised when the Blender command cannot be launched."""
-
-
-class BlenderFileNotFoundError(BlenderLaunchError):
-    """Raised when the Blender command's file cannot be found."""
 
 
 class BlenderError(MCRenderError):
@@ -174,8 +166,6 @@ def mineways_make_obj(
         try:
             cmd = [mineways_cmd, "-m", "-suppress", "-s", "none", scriptPath]
             process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        except FileNotFoundError as e:
-            raise MinewaysFileNotFoundError(f"Mineways could not be launched: {e}") from e
         except OSError as e:
             raise MinewaysLaunchError(f"Mineways could not be launched: {e}") from e
 
@@ -215,8 +205,6 @@ def blender_render_obj(
         try:
             cmd  = [blender_cmd, "--background", _BLENDER_BLEND_PATH, "--python", _BLENDER_SCRIPT_PATH, "--", "--exposure", str(exposure), obj_path, f"{tmpDir}/output"]
             subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        except FileNotFoundError as e:
-            raise BlenderFileNotFoundError(f"Blender could not be launched: {e}") from e
         except OSError as e:
             raise BlenderLaunchError(f"Blender could not be launched: {e}") from e
         except subprocess.CalledProcessError as e:
