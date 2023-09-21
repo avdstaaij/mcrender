@@ -40,17 +40,18 @@ def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[
 @cloup.command(context_settings={"show_default": True})
 @cloup.argument("world-path",  metavar="<world path>",  type=cloup.Path(exists=True, file_okay=False))
 @cloup.argument("output-path", metavar="<output path>", type=cloup.Path())
-@cloup.option("--pos",  "-p",     metavar=" <x> <y> <z>", help="Render-box corner",                      type=int, nargs=3, multiple=True)
-@cloup.option("--size", "-s",     metavar="<x> <y> <z>",  help="Render-box size",                        type=int, nargs=3)
-@cloup.option("--rotation",       metavar="{0,1,2,3}",    help="Rotation of the camera.",                type=int, default=0)
-@cloup.option("--exposure",       metavar="<float>",      help="Exposure for post-processing.",          type=float, default=0)
-@cloup.option("--trim/--no-trim",                         help="Trim the output image.",                 default=True)
-@cloup.option("--mineways-cmd",   metavar="<cmd>",        help="Command to run Mineways.",               type=str)
-@cloup.option("--blender-cmd",    metavar="<cmd>",        help="Command to run Blender.",                type=str)
-@cloup.option("--verbose", "-v", "verbose",               help="Print more information.",                flag_value=True)
-@cloup.option("--quiet",   "-q", "verbose",               help="Cancel a previous --verbose.",           flag_value=False, default=False, show_default=False)
+@cloup.option("--pos",  "-p",     metavar=" <x> <y> <z>", help="Render-box corner",                           type=int, nargs=3, multiple=True)
+@cloup.option("--size", "-s",     metavar="<x> <y> <z>",  help="Render-box size",                             type=int, nargs=3)
+@cloup.option("--rotation",       metavar="{0,1,2,3}",    help="Rotation of the camera.",                     type=int, default=0)
+@cloup.option("--exposure",       metavar="<float>",      help="Exposure for post-processing.",               type=float, default=0)
+@cloup.option("--trim/--no-trim",                         help="Trim the output image.",                      default=True)
+@cloup.option("--force", "-f",                            help="Overwrite any existing file at output path.", is_flag=True)
+@cloup.option("--mineways-cmd",   metavar="<cmd>",        help="Command to run Mineways.",                    type=str)
+@cloup.option("--blender-cmd",    metavar="<cmd>",        help="Command to run Blender.",                     type=str)
+@cloup.option("--verbose", "-v", "verbose",               help="Print more information.",                     flag_value=True)
+@cloup.option("--quiet",   "-q", "verbose",               help="Cancel a previous --verbose.",                flag_value=False, default=False, show_default=False)
 @cloup.version_option(mcrender.__version__, package_name="mcrender", prog_name="mcrender", message="%(prog)s %(version)s")
-def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], output_path: str, rotation: int, exposure: float, trim: bool, mineways_cmd: Optional[str], blender_cmd: Optional[str], verbose: bool):
+def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], output_path: str, rotation: int, exposure: float, trim: bool, force: bool, mineways_cmd: Optional[str], blender_cmd: Optional[str], verbose: bool):
     """
     Render a Minecraft world snippet with Mineways and Blender.
 
@@ -75,6 +76,7 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
             rotation     = rotation,
             exposure     = exposure,
             trim         = trim,
+            force        = force,
             mineways_cmd = mineways_cmd,
             blender_cmd  = blender_cmd,
             verbose      = verbose
@@ -127,5 +129,7 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
         )
     except mcrender.BlenderError as e:
         eprint(f"\nError: Blender returned an error.\n    {e.__cause__}\n")
+    except mcrender.OutputFileExistsError as e:
+        eprint(f"\nError: {e}\n")
 
     sys.exit(1)

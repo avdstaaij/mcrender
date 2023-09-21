@@ -29,7 +29,7 @@ from configparser import ConfigParser
 import platformdirs
 from PIL import Image
 
-from mcrender._util import eprint
+from mcrender._util import eprint, move
 
 
 _SCRIPT_DIR          = os.path.dirname(os.path.realpath(__file__))
@@ -77,6 +77,10 @@ class BlenderLaunchError(MCRenderError):
 
 class BlenderError(MCRenderError):
     """Raised when Blender returns an error."""
+
+
+class OutputFileExistsError(MCRenderError):
+    """Raised when an output file or directory already exists and cannot be overwritten."""
 
 
 # --------------------------------------------------------------------------------------------------
@@ -194,6 +198,7 @@ def blender_render_obj(
     obj_path:    str,
     exposure:    float = 0,
     trim:        bool  = False,
+    force:       bool  = False,
     blender_cmd: Optional[str] = None
 ):
     if blender_cmd is None:
@@ -216,7 +221,10 @@ def blender_render_obj(
             trimmed.save(f"{tmpDir}/output0001.png")
 
         if os.path.dirname(output_path): os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        os.rename(f"{tmpDir}/output0001.png", output_path)
+        try:
+            move(f"{tmpDir}/output0001.png", output_path, overwrite=force, never_overwrite_dir=True)
+        except FileExistsError as e:
+            raise OutputFileExistsError(str(e)) from e
 
 
 # --------------------------------------------------------------------------------------------------
@@ -235,6 +243,7 @@ def render(
     rotation:     int   = 0,
     exposure:     float = 0,
     trim:         bool  = False,
+    force:        bool  = False,
     mineways_cmd: Optional[str] = None,
     blender_cmd:  Optional[str] = None,
     verbose:      bool  = False,
@@ -243,5 +252,5 @@ def render(
         if verbose: eprint("Running Mineways...")
         mineways_make_obj(tmpDir, "snippet", world_path, x, y, z, size_x, size_y, size_z, rotation, mineways_cmd)
         if verbose: eprint("Rendering...")
-        blender_render_obj(output_path, f"{tmpDir}/snippet.obj", exposure, trim, blender_cmd)
+        blender_render_obj(output_path, f"{tmpDir}/snippet.obj", exposure, trim, force, blender_cmd)
         if verbose: eprint(f"Created {output_path}")
