@@ -6,6 +6,7 @@ mcrender is a wrapper around [Mineways](https://www.realtimerendering.com/erich/
 
 Jump to: [Installation](#installation) | [Usage - CLI](#usage---cli) | [Usage - Python](#usage---python) | [Alternatives](#alternatives) | [Acknowledgements](#acknowledgements)
 
+
 # Installation
 
 mcrender requires Python 3.7+.
@@ -34,10 +35,43 @@ The config file has two keys:
 
 # Usage - CLI
 
+To run mcrender, use:
+
+```
+mcrender [options] <world path> <output path>
+```
+
+You also need to specify which 3D box of the Minecraft world to render. This can be done in two ways:
+1. Using `--pos` and `--size`.
+2. Using two `--pos` options: one for each corner (inclusive).
+
+Options:
+| Option                   | Description                                                   | Default  |
+|--------------------------|---------------------------------------------------------------|----------|
+| `-p, --pos  <x> <y> <z>` | Render-box corner                                             |          |
+| `-s, --size <x> <y> <z>` | Render-box size                                               |          |
+| `--rotation {0,1,2,3}`   | Rotation of the camera.                                       | 0        |
+| `--exposure <float>`     | Post-processing exposure (brightness). Can be negative.       | 0        |
+| `--trim / --no-trim`     | Whether to trim the output image.*                            | `--trim` |
+| `-f, --force`            | Overwrite any existing file at the output path.               |          |
+| `--mineways-cmd <cmd>`   | Command to run Mineways. Overrides the config file's command. |          |
+| `--blender-cmd <cmd>`    | Command to run Blender. Overrides the config file's command.  |          |
+| `-v, --verbose`          | Print more information.                                       |          |
+| `-q, --quiet`            | Cancel a previous --verbose.                                  |          |
+| `--version`              | Show the version and exit.                                    |          |
+| `--help`                 | Show a help message and exit.                                 |          |
+
+*: The render is always created at a resolution of 2048x2048 pixels, but the model may not be square. If `--trim` is set (which it is by default), the image is trimmed down to the model's bounding box. Otherwise, the model will be centered in the image.
+
+Example usage:
+```
+mcrender -v /path/to/minecraft-world -p 0 60 0 -s 64 128 64 --rotation 1 snippet.png
+```
 
 
 # Usage - Python
 
+TODO
 
 
 # Alternatives
