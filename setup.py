@@ -45,7 +45,7 @@ setup(
     include_package_data=True,
     entry_points={
         "console_scripts": [
-            "mcrender = mcrender._cli:cli",
+            "mcrender = mcrender._cli:main",
         ],
     },
     python_requires=">=3.7, <4",

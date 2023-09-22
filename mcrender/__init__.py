@@ -36,7 +36,7 @@ _SCRIPT_DIR          = os.path.dirname(os.path.realpath(__file__))
 _BLENDER_BLEND_PATH  = f"{_SCRIPT_DIR}/_data/blender/mineways-isometric.blend"
 _BLENDER_SCRIPT_PATH = f"{_SCRIPT_DIR}/_data/blender/mineways-isometric.py.txt"
 _DEFAULT_CONFIG_PATH = f"{_SCRIPT_DIR}/_data/default-config.conf"
-_CONFIG_PATH         = os.path.join(platformdirs.user_config_dir("mcrender", ensure_exists=True), "config.conf")
+CONFIG_PATH          = os.path.join(platformdirs.user_config_dir("mcrender", ensure_exists=True), "config.conf")
 
 
 # --------------------------------------------------------------------------------------------------
@@ -93,6 +93,19 @@ class _Config:
     blender_cmd:  Optional[str] = "blender"
 
 
+def ensure_config_file():
+    """Creates a default config file if it doesn't exist.
+
+    Raises a ConfigAccessError if creation fails.
+    """
+
+    if not os.path.isfile(CONFIG_PATH):
+        try:
+            shutil.copy2(_DEFAULT_CONFIG_PATH, CONFIG_PATH)
+        except OSError as e:
+            raise ConfigAccessError(f"Could not create default config file at {CONFIG_PATH}") from e
+
+
 @lru_cache(maxsize=None)
 def _read_config_file():
     """Reads and parses the config file.
@@ -102,18 +115,13 @@ def _read_config_file():
     Raises a ConfigAccessError if the config file cannot be accessed.
     """
 
-    if not os.path.isfile(_CONFIG_PATH):
-        try:
-            shutil.copy2(_DEFAULT_CONFIG_PATH, _CONFIG_PATH)
-        except OSError as e:
-            raise ConfigAccessError(f"Cannot write to config file {_CONFIG_PATH}") from e
-
+    ensure_config_file()
     parser = ConfigParser()
     try:
-        with open(_CONFIG_PATH, "r", encoding="utf-8") as file:
+        with open(CONFIG_PATH, "r", encoding="utf-8") as file:
             parser.read_string("[DEFAULT]\n" + file.read())
     except OSError as e:
-        raise ConfigAccessError(f"Cannot read config file {_CONFIG_PATH}") from e
+        raise ConfigAccessError(f"Could not read config file {CONFIG_PATH}") from e
 
     return _Config(
         mineways_cmd = parser.get("DEFAULT", "mineways-cmd", fallback=None),

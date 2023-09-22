@@ -44,7 +44,7 @@ def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[
 # quite unintuitive. For consistency, we take the size as an option as well.
 
 # pylint: disable=no-value-for-parameter
-@cloup.command(context_settings={"show_default": True})
+@cloup.command(context_settings={"show_default": True}, epilog=f"Config file location: {mcrender.CONFIG_PATH}")
 @cloup.argument("world-path",  metavar="<world path>",  type=cloup.Path(exists=True, file_okay=False))
 @cloup.argument("output-path", metavar="<output path>", type=cloup.Path())
 @cloup.option("--pos",  "-p",     metavar=" <x> <y> <z>", help="Render-box corner",                           type=int, nargs=3, multiple=True)
@@ -58,7 +58,7 @@ def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[
 @cloup.option("--verbose", "-v", "verbose",               help="Print more information.",                     flag_value=True)
 @cloup.option("--quiet",   "-q", "verbose",               help="Cancel a previous --verbose.",                flag_value=False, default=False, show_default=False)
 @cloup.version_option(mcrender.__version__, package_name="mcrender", prog_name="mcrender", message="%(prog)s %(version)s")
-def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], output_path: str, rotation: int, exposure: float, trim: bool, force: bool, mineways_cmd: Optional[str], blender_cmd: Optional[str], verbose: bool):
+def cli(world_path: str, output_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], rotation: int, exposure: float, trim: bool, force: bool, mineways_cmd: Optional[str], blender_cmd: Optional[str], verbose: bool):
     """
     Render a Minecraft world snippet with Mineways and Blender.
 
@@ -92,11 +92,11 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
         )
         return
     except mcrender.ConfigAccessError as e:
-        eprint(f"{error_prefix}{e}", file=sys.stderr)
+        eprint(f"{error_prefix}{e}\n    {e.__cause__}", file=sys.stderr)
     except mcrender.MinewaysCommandNotSetError:
-        eprint(f"{error_prefix}You must either set --mineways-cmd, or set mineways-cmd in\n{repr(mcrender._CONFIG_PATH)}.") # pylint: disable=protected-access
+        eprint(f"{error_prefix}You must either set --mineways-cmd, or set mineways-cmd in\n{repr(mcrender.CONFIG_PATH)}.")
     except mcrender.BlenderCommandNotSetError:
-        eprint(f"{error_prefix}You must either set --blender-cmd, or set blender-cmd in\n{repr(mcrender._CONFIG_PATH)}.") # pylint: disable=protected-access
+        eprint(f"{error_prefix}You must either set --blender-cmd, or set blender-cmd in\n{repr(mcrender.CONFIG_PATH)}.")
     except mcrender.MinewaysLaunchError as e:
         eprint(f"{error_prefix}Mineways could not be launched.\n    {e.__cause__}\n")
         if mineways_cmd is not None:
@@ -108,7 +108,7 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
         else:
             eprint(
                 "Make sure that you have downloaded Mineways and that your configured",
-                f"mineways-cmd (in {repr(mcrender._CONFIG_PATH)}) runs it.", # pylint: disable=protected-access
+                f"mineways-cmd (in {repr(mcrender.CONFIG_PATH)}) runs it.",
                 sep="\n"
             )
     except mcrender.BlenderLaunchError as e:
@@ -122,7 +122,7 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
         else:
             eprint(
                 "Make sure that you have downloaded Blender and that your configured",
-                f"blender-cmd (in {repr(mcrender._CONFIG_PATH)}) runs it.", # pylint: disable=protected-access
+                f"blender-cmd (in {repr(mcrender.CONFIG_PATH)}) runs it.",
                 sep="\n"
             )
     except mcrender.MinewaysError as e:
@@ -142,3 +142,13 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
         eprint(f"{error_prefix}{e}")
 
     sys.exit(1)
+
+
+def main():
+    try:
+        mcrender.ensure_config_file()
+    except mcrender.ConfigAccessError as e:
+        eprint(f"Warning: {e}\n    {e.__cause__}\n")
+        eprint("If this execution requires the config file, it will fail.\n")
+
+    cli()
