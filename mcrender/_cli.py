@@ -12,7 +12,12 @@ def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[
     """Parses specified pos and size arguments into a (x,y,z,sx,sy,sz) tuple."""
 
     def raise_box_spec_error():
-        raise UsageError("You must either set --pos and --size, or set --pos twice.")
+        raise UsageError(
+            "The box to render is not specified.\n"
+            "You can specify the box to render in two ways:\n"
+            "1. Using --pos and --size.\n"
+            "2. Using two --pos options: one for each corner (inclusive)."
+        )
 
     if len(pos) == 1:
         if size is None:
@@ -61,6 +66,8 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
     2. Using two --pos options: one for each corner (inclusive).
     """
 
+    error_prefix = "\nError: " if verbose else "Error: "
+
     box = parse_box_spec(pos, size)
 
     try:
@@ -83,13 +90,13 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
         )
         return
     except mcrender.ConfigAccessError as e:
-        eprint(f"\nError: {e}", file=sys.stderr)
+        eprint(f"{error_prefix}{e}", file=sys.stderr)
     except mcrender.MinewaysCommandNotSetError:
-        eprint(f"\nError: You must either set --mineways-cmd, or set mineways-cmd in\n{repr(mcrender._CONFIG_PATH)}.") # pylint: disable=protected-access
+        eprint(f"{error_prefix}You must either set --mineways-cmd, or set mineways-cmd in\n{repr(mcrender._CONFIG_PATH)}.") # pylint: disable=protected-access
     except mcrender.BlenderCommandNotSetError:
-        eprint(f"\nError: You must either set --blender-cmd, or set blender-cmd in\n{repr(mcrender._CONFIG_PATH)}.") # pylint: disable=protected-access
+        eprint(f"{error_prefix}You must either set --blender-cmd, or set blender-cmd in\n{repr(mcrender._CONFIG_PATH)}.") # pylint: disable=protected-access
     except mcrender.MinewaysLaunchError as e:
-        eprint(f"\nError: Mineways could not be launched.\n    {e.__cause__}\n")
+        eprint(f"{error_prefix}Mineways could not be launched.\n    {e.__cause__}\n")
         if mineways_cmd is not None:
             eprint(
                  "Make sure that you have downloaded Mineways and that your specified",
@@ -103,7 +110,7 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
                 sep="\n"
             )
     except mcrender.BlenderLaunchError as e:
-        eprint(f"\nError: Blender could not be launched.\n    {e.__cause__}\n")
+        eprint(f"{error_prefix}Blender could not be launched.\n    {e.__cause__}\n")
         if blender_cmd is not None:
             eprint(
                  "Make sure that you have downloaded Blender and that your specified",
@@ -117,10 +124,10 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
                 sep="\n"
             )
     except mcrender.MinewaysError as e:
-        eprint(f"\nError: {e}\n")
+        eprint(f"{error_prefix}{e}")
     except mcrender.MinewaysBadWorldError as e:
         eprint(
-             "\nError: Mineways could not load the specified world",
+            f"{error_prefix}Mineways could not load the specified world",
             f"{repr(world_path)}.",
             "",
             "There might still be a Mineways window open that you'll have to close",
@@ -128,8 +135,8 @@ def cli(world_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], out
             sep="\n"
         )
     except mcrender.BlenderError as e:
-        eprint(f"\nError: Blender returned an error.\n    {e.__cause__}\n")
+        eprint(f"{error_prefix}Blender returned an error.\n    {e.__cause__}")
     except mcrender.OutputFileExistsError as e:
-        eprint(f"\nError: {e}\n")
+        eprint(f"{error_prefix}{e}")
 
     sys.exit(1)
