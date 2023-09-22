@@ -224,7 +224,7 @@ def blender_render_obj(
     output_path: str,
     obj_path:    str,
     exposure:    float = 0,
-    trim:        bool  = False,
+    trim:        bool  = True,
     force:       bool  = False,
     blender_cmd: Optional[str] = None
 ):
@@ -295,7 +295,7 @@ def render(
     size_z:       int,
     rotation:     int   = 0,
     exposure:     float = 0,
-    trim:         bool  = False,
+    trim:         bool  = True,
     force:        bool  = False,
     mineways_cmd: Optional[str] = None,
     blender_cmd:  Optional[str] = None,
