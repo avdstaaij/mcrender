@@ -1,3 +1,5 @@
+"""mcrender command-line interface."""
+
 from typing import Optional, Tuple
 import sys
 

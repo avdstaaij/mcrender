@@ -95,7 +95,12 @@ class _Config:
 
 @lru_cache(maxsize=None)
 def _read_config_file():
-    """Reads and parses the config file."""
+    """Reads and parses the config file.
+
+    If the config file doesn't exist, creates the default one.
+
+    Raises a ConfigAccessError if the config file cannot be accessed.
+    """
 
     if not os.path.isfile(_CONFIG_PATH):
         try:
@@ -120,7 +125,6 @@ def _read_config_file():
 # Mineways
 
 
-# Inspired by https://github.com/Mawiszus/World-GAN/blob/main/minecraft/level_renderer.py
 def mineways_make_obj(
     output_dir_path: str,
     output_name:     str,
@@ -134,6 +138,29 @@ def mineways_make_obj(
     rotation:        int = 0,
     mineways_cmd:    Optional[str] = None
  ):
+    """Creates an OBJ model of a Minecraft world snippet using Mineways.
+
+    The output OBJ file is written to `<output_dir_path>/<output_name>.obj`.
+    Auxillary model files (like textures) are written to `<output_dir_path>`.
+
+    Converts the snippet of the Minecraft world at <world_path> defined by the box
+    <x>, <y>, <z>, <size_x>, <size_y> and <size_z>. The sizes must all be strictly positive.
+    The view direction is optionally rotated by <rotation> (0, 1, 2 or 3).
+
+    Uses <mineways_cmd> to run Mineways. If <mineways_cmd> is None, uses the command defined in the
+    config file.
+
+    Raises:
+    - `ConfigAccessError` if the config file cannot be accessed.
+    - `MinewaysCommandNotSetError` if the mineways command is set neither in the config file nor as
+      an argument.
+    - `MinewaysLaunchError` if Mineways cannot not be lauched.
+    - `MinewaysError` if Mineways returns an error.
+    - `MinewaysBadWorldError` if Mineways cannot load the world.
+
+    May raise other exceptions as well, such as `OSError`.
+    """
+
     if size_x <= 0 or size_y <= 0 or size_z <= 0:
         raise ValueError("The size must be positive in each dimension.")
 
@@ -201,6 +228,32 @@ def blender_render_obj(
     force:       bool  = False,
     blender_cmd: Optional[str] = None
 ):
+    """Renders an OBJ file (as created by Mineways) to a PNG image using Blender.
+
+    The output PNG file is written to <output_path>.
+
+    The post-processing exposure can optionally be modified by <exposure> (can be negative).
+
+    The image is created at a resolution of 2048x2048 pixels, but the model may not be square.
+    If <trim> is True, the image is trimmed down to the model's bounding box.
+    Otherwise, the model will be centered in the image.
+
+    If <force> is true, overwrites any existing file at <output_path>.
+
+    Uses <blender_cmd> to run Blender. If <blender_cmd> is None, uses the command defined in the
+    config file.
+
+    Raises:
+    - `ConfigAccessError` if the config file cannot be accessed.
+    - `BlenderCommandNotSetError` if the Blender command is set neither in the config file nor as an
+      argument.
+    - `BlenderLaunchError` if Blender cannot be launched.
+    - `BlenderError` if Blender returns an error.
+    - `OutputFileExistsError` if the output file already exists and <force> is false.
+
+    May raise other exceptions as well, such as `OSError`.
+    """
+
     if blender_cmd is None:
         blender_cmd = _read_config_file().blender_cmd
         if blender_cmd is None:
@@ -248,6 +301,40 @@ def render(
     blender_cmd:  Optional[str] = None,
     verbose:      bool  = False,
 ):
+    """Renders a Minecraft world snippet to a PNG image using Mineways and Blender.
+
+    The output PNG file is written to <output_path>.
+
+    Renders the snippet of the Minecraft world at <world_path> defined by the box
+    <x>, <y>, <z>, <size_x>, <size_y> and <size_z>. The sizes must all be strictly positive.
+    The view direction is optionally rotated by <rotation> (0, 1, 2 or 3).
+
+    The post-processing exposure can optionally be modified by <exposure> (can be negative).
+
+    The image is created at a resolution of 2048x2048 pixels, but the model may not be square.
+    If <trim> is True, the image is trimmed down to the model's bounding box.
+    Otherwise, the model will be centered in the image.
+
+    If <force> is true, overwrites any existing file at <output_path>.
+
+    Uses <mineways_cmd> to run Mineways and <blender_cmd> to run Blender.
+    If either argument is None, uses the command defined in the config file.
+
+    Raises:
+    - `ConfigAccessError` if the config file cannot be accessed.
+    - `MinewaysCommandNotSetError` if the mineways command is set neither in the config file nor as
+      an argument.
+    - `MinewaysLaunchError` if Mineways cannot not be lauched.
+    - `MinewaysError` if Mineways returns an error.
+    - `MinewaysBadWorldError` if Mineways cannot load the world.
+    - `BlenderCommandNotSetError` if the Blender command is set neither in the config file nor as an
+      argument.
+    - `BlenderLaunchError` if Blender cannot be launched.
+    - `BlenderError` if Blender returns an error.
+    - `OutputFileExistsError` if the output file already exists and <force> is false.
+
+    May raise other exceptions as well, such as `OSError`.
+    """
     with TemporaryDirectory() as tmpDir:
         if verbose: eprint("Running Mineways...")
         mineways_make_obj(tmpDir, "snippet", world_path, x, y, z, size_x, size_y, size_z, rotation, mineways_cmd)
