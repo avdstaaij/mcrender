@@ -50,6 +50,7 @@ def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[
 @cloup.option("--pos",  "-p",     metavar=" <x> <y> <z>", help="Render-box corner",                           type=int, nargs=3, multiple=True)
 @cloup.option("--size", "-s",     metavar="<x> <y> <z>",  help="Render-box size",                             type=int, nargs=3)
 @cloup.option("--rotation",       metavar="{0,1,2,3}",    help="Rotation of the camera.",                     type=int, default=0)
+@cloup.option("--dimension",      metavar="<id>",         help="World dimension",                             type=str, default="overworld")
 @cloup.option("--exposure",       metavar="<float>",      help="Exposure for post-processing.",               type=float, default=0)
 @cloup.option("--trim/--no-trim",                         help="Trim the output image.",                      default=True)
 @cloup.option("--force", "-f",                            help="Overwrite any existing file at output path.", is_flag=True)
@@ -58,7 +59,7 @@ def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[
 @cloup.option("--verbose", "-v", "verbose",               help="Print more information.",                     flag_value=True)
 @cloup.option("--quiet",   "-q", "verbose",               help="Cancel a previous --verbose.",                flag_value=False, default=False, show_default=False)
 @cloup.version_option(mcrender.__version__, package_name="mcrender", prog_name="mcrender", message="%(prog)s %(version)s")
-def cli(world_path: str, output_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], rotation: int, exposure: float, trim: bool, force: bool, mineways_cmd: Optional[str], blender_cmd: Optional[str], verbose: bool):
+def cli(world_path: str, output_path: str, pos: Tuple[Tuple[int]], size: Optional[Tuple[int]], rotation: int, dimension: str, exposure: float, trim: bool, force: bool, mineways_cmd: Optional[str], blender_cmd: Optional[str], verbose: bool):
     """
     Render a Minecraft world snippet with Mineways and Blender.
 
@@ -83,6 +84,7 @@ def cli(world_path: str, output_path: str, pos: Tuple[Tuple[int]], size: Optiona
             size_y       = box[4],
             size_z       = box[5],
             rotation     = rotation,
+            dimension    = dimension,
             exposure     = exposure,
             trim         = trim,
             force        = force,

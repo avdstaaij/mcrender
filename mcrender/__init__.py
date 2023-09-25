@@ -38,6 +38,15 @@ _BLENDER_SCRIPT_PATH = f"{_SCRIPT_DIR}/_data/blender/mineways-isometric.py.txt"
 _DEFAULT_CONFIG_PATH = f"{_SCRIPT_DIR}/_data/default-config.conf"
 CONFIG_PATH          = os.path.join(platformdirs.user_config_dir("mcrender", ensure_exists=True), "config.conf")
 
+_DIMENSION_ID_TO_MINEWAYS_NAME = {
+    "overworld":  "Overworld",
+    "the_nether": "Nether",
+    "nether":     "Nether",
+    "the_end":    "The End",
+    "end":        "The End"
+}
+DIMENSIONS = list(_DIMENSION_ID_TO_MINEWAYS_NAME.keys())
+
 
 # --------------------------------------------------------------------------------------------------
 # Exception classes
@@ -144,6 +153,7 @@ def mineways_make_obj(
     size_y:          int,
     size_z:          int,
     rotation:        int = 0,
+    dimension:       str = "overworld",
     mineways_cmd:    Optional[str] = None
  ):
     """Creates an OBJ model of a Minecraft world snippet using Mineways.
@@ -151,9 +161,9 @@ def mineways_make_obj(
     The output OBJ file is written to `<output_dir_path>/<output_name>.obj`.
     Auxillary model files (like textures) are written to `<output_dir_path>`.
 
-    Converts the snippet of the Minecraft world at <world_path> defined by the box
-    <x>, <y>, <z>, <size_x>, <size_y> and <size_z>. The sizes must all be strictly positive.
-    The view direction is optionally rotated by <rotation> (0, 1, 2 or 3).
+    Converts the snippet specified by the Minecraft world path <world_path>, the coordinate box
+    <x>, <y>, <z>, <size_x>, <size_y> and <size_z>, and the dimension id <dimension>. The sizes must
+    all be strictly positive. The view direction is optionally rotated by <rotation> (0, 1, 2 or 3).
 
     Uses <mineways_cmd> to run Mineways. If <mineways_cmd> is None, uses the command defined in the
     config file.
@@ -172,6 +182,12 @@ def mineways_make_obj(
     if size_x <= 0 or size_y <= 0 or size_z <= 0:
         raise ValueError("The size must be positive in each dimension.")
 
+    if rotation not in (0, 1, 2, 3):
+        raise ValueError("The rotation must be 0, 1, 2 or 3.")
+
+    if dimension not in DIMENSIONS:
+        raise ValueError(f"The dimension must be one of {{{', '.join(DIMENSIONS)}}}.")
+
     if mineways_cmd is None:
         mineways_cmd = _read_config_file().mineways_cmd
         if mineways_cmd is None:
@@ -185,6 +201,7 @@ def mineways_make_obj(
             # https://www.realtimerendering.com/erich/minecraft/public/mineways/scripting.html
             f.write(f"Save Log file: {tmpDir}/log.txt\n")
             f.write(f"Minecraft world: {world_path}\n")
+            f.write(f"View {_DIMENSION_ID_TO_MINEWAYS_NAME[dimension]}\n")
             f.write(f"Selection location min to max: {x}, {y}, {z} to {x + size_x - 1}, {y + size_y - 1}, {z + size_z - 1}\n")
             f.write("Set render type: Wavefront OBJ absolute indices\n")
             f.write("File type: Export all textures to three large images\n")
@@ -302,6 +319,7 @@ def render(
     size_y:       int,
     size_z:       int,
     rotation:     int   = 0,
+    dimension:    str   = "overworld",
     exposure:     float = 0,
     trim:         bool  = True,
     force:        bool  = False,
@@ -313,9 +331,9 @@ def render(
 
     The output PNG file is written to <output_path>.
 
-    Renders the snippet of the Minecraft world at <world_path> defined by the box
-    <x>, <y>, <z>, <size_x>, <size_y> and <size_z>. The sizes must all be strictly positive.
-    The view direction is optionally rotated by <rotation> (0, 1, 2 or 3).
+    Renders the snippet specified by the Minecraft world path <world_path>, the coordinate box
+    <x>, <y>, <z>, <size_x>, <size_y> and <size_z>, and the dimension id <dimension>. The sizes must
+    all be strictly positive. The view direction is optionally rotated by <rotation> (0, 1, 2 or 3).
 
     The post-processing exposure can optionally be modified by <exposure> (can be negative).
 
@@ -345,7 +363,7 @@ def render(
     """
     with TemporaryDirectory() as tmpDir:
         if verbose: eprint("Running Mineways...")
-        mineways_make_obj(tmpDir, "snippet", world_path, x, y, z, size_x, size_y, size_z, rotation, mineways_cmd)
+        mineways_make_obj(tmpDir, "snippet", world_path, x, y, z, size_x, size_y, size_z, rotation, dimension, mineways_cmd)
         if verbose: eprint("Rendering...")
         blender_render_obj(output_path, f"{tmpDir}/snippet.obj", exposure, trim, force, blender_cmd)
         if verbose: eprint(f"Created {output_path}")

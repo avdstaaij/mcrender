@@ -7,7 +7,7 @@ mcrender is a wrapper around [Mineways](https://www.realtimerendering.com/erich/
 Jump to: [Installation](#installation) | [Usage - CLI](#usage---cli) | [Usage - Python](#usage---python) | [Alternatives](#alternatives) | [Acknowledgements](#acknowledgements)
 
 
-# Installation
+## Installation
 
 mcrender requires Python 3.7+.
 It is available on PyPI, and can be installed with `pip`:
@@ -33,7 +33,7 @@ The config file has two keys:
   Set this to a command that will run Blender on your system. The default value `blender` is probably fine.
 
 
-# Usage - CLI
+## Usage - CLI
 
 To run mcrender, use:
 
@@ -48,22 +48,26 @@ You also need to specify which 3D box of the Minecraft world to render. This can
 2. Using two `--pos` options: one for each corner (inclusive).
 
 ### Options
-| Option                   | Description                                                   | Default  |
-|--------------------------|---------------------------------------------------------------|----------|
-| `-p, --pos  <x> <y> <z>` | Render-box corner                                             |          |
-| `-s, --size <x> <y> <z>` | Render-box size                                               |          |
-| `--rotation {0,1,2,3}`   | Rotation of the camera.                                       | 0        |
-| `--exposure <float>`     | Post-processing exposure (brightness). Can be negative.       | 0        |
-| `--trim / --no-trim`     | Whether to trim the output image.*                            | `--trim` |
-| `-f, --force`            | Overwrite any existing file at the output path.               |          |
-| `--mineways-cmd <cmd>`   | Command to run Mineways. Overrides the config file's command. |          |
-| `--blender-cmd <cmd>`    | Command to run Blender. Overrides the config file's command.  |          |
-| `-v, --verbose`          | Print more information.                                       |          |
-| `-q, --quiet`            | Cancel a previous --verbose.                                  |          |
-| `--version`              | Show the version and exit.                                    |          |
-| `--help`                 | Show a help message and exit.                                 |          |
+| Option                   | Description                                             | Default     |
+|--------------------------|---------------------------------------------------------|-------------|
+| `-p, --pos  <x> <y> <z>` | Render-box corner                                       |             |
+| `-s, --size <x> <y> <z>` | Render-box size                                         |             |
+| `--rotation {0,1,2,3}`   | Rotation of the camera.                                 | 0           |
+| `--dimension <id>`       | World dimension.*                                       | `overworld` |
+| `--exposure <float>`     | Post-processing exposure (brightness). Can be negative. | 0           |
+| `--trim / --no-trim`     | Whether to trim the output image.**                     | `--trim`    |
+| `-f, --force`            | Overwrite any existing file at the output path.         |             |
+| `--mineways-cmd <cmd>`   | Command to run Mineways. Overrides the config file.     |             |
+| `--blender-cmd <cmd>`    | Command to run Blender. Overrides the config file.      |             |
+| `-v, --verbose`          | Print more information.                                 |             |
+| `-q, --quiet`            | Cancel a previous --verbose.                            |             |
+| `--version`              | Show the version and exit.                              |             |
+| `--help`                 | Show a help message and exit.                           |             |
 
-*: The render is always created at a resolution of 2048x2048 pixels, but the model may not be square. If `--trim` is set (which it is by default), the image is trimmed down to the model's bounding box. Otherwise, the model will be centered in the image.
+
+*: Dimension options: `overworld`, `the_nether`, `nether`, `the_end`, `end`.
+
+**: The render is always created at a resolution of 2048x2048 pixels, but the model may not be square. If `--trim` is set (which it is by default), the image is trimmed down to the model's bounding box. Otherwise, the model will be centered in the image.
 
 ### Example usage
 ```
@@ -71,7 +75,7 @@ mcrender -v /path/to/minecraft-world -p 0 60 0 -s 64 128 64 --rotation 1 snippet
 ```
 
 
-# Usage - Python
+## Usage - Python
 
 ### Core functions
 
@@ -88,6 +92,7 @@ The `mcrender` package has only one public module; everything can be imported di
     size_y:       int,
     size_z:       int,
     rotation:     int           = 0,
+    dimension:    str           = "overworld",
     exposure:     float         = 0,
     trim:         bool          = True,
     force:        bool          = False,
@@ -111,6 +116,7 @@ The `mcrender` package has only one public module; everything can be imported di
     size_y:          int,
     size_z:          int,
     rotation:        int           = 0,
+    dimension:       str           = "overworld",
     mineways_cmd:    Optional[str] = None
   )
   ```
@@ -170,6 +176,9 @@ In some circumstances, the core functions may also raise built-in exceptions suc
 
 ### Miscellaneous
 
+- `DIMENSIONS`\
+  List of supported world dimension identifiers.
+
 - `CONFIG_PATH`\
   Path of the config file on the current operating system.
 
@@ -191,7 +200,7 @@ mcrender.render(
 ```
 
 
-# Alternatives
+## Alternatives
 
 Rendering Minecraft worlds is not a new concept. This particular tool is mainly intended for use in scripts or larger systems. It's very automatable, but not very interactive.
 
@@ -224,7 +233,7 @@ Disadvantages:
   Mineways creates models of Minecraft world snippets, which can be 3D printed or rendered. Using Mineways and a rending engine separately is more complex, but opens up more possibilities.
 
 
-# Acknowledgements
+## Acknowledgements
 
 mcrender was inspired by the scripts from [World-GAN](https://github.com/Mawiszus/World-GAN), as described under [Alternatives](#alternatives).
 
