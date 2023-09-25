@@ -41,11 +41,13 @@ To run mcrender, use:
 mcrender [options] <world path> <output path>
 ```
 
+This will create a render of the Minecraft world at `<world path>`, and save it at `<output path>` in PNG format. (Though note that mcrender will not automatically append the .png extension to `<output path>`.)
+
 You also need to specify which 3D box of the Minecraft world to render. This can be done in two ways:
 1. Using `--pos` and `--size`.
 2. Using two `--pos` options: one for each corner (inclusive).
 
-Options:
+### Options
 | Option                   | Description                                                   | Default  |
 |--------------------------|---------------------------------------------------------------|----------|
 | `-p, --pos  <x> <y> <z>` | Render-box corner                                             |          |
@@ -63,7 +65,7 @@ Options:
 
 *: The render is always created at a resolution of 2048x2048 pixels, but the model may not be square. If `--trim` is set (which it is by default), the image is trimmed down to the model's bounding box. Otherwise, the model will be centered in the image.
 
-Example usage:
+### Example usage
 ```
 mcrender -v /path/to/minecraft-world -p 0 60 0 -s 64 128 64 --rotation 1 snippet.png
 ```
@@ -71,7 +73,122 @@ mcrender -v /path/to/minecraft-world -p 0 60 0 -s 64 128 64 --rotation 1 snippet
 
 # Usage - Python
 
-TODO
+### Core functions
+
+The `mcrender` package has only one public module; everything can be imported directly from `mcrender`. The interface consists primarily of the following thee functions:
+
+- ```python
+  def render(
+    output_path:  str,
+    world_path:   str,
+    x:            int,
+    y:            int,
+    z:            int,
+    size_x:       int,
+    size_y:       int,
+    size_z:       int,
+    rotation:     int           = 0,
+    exposure:     float         = 0,
+    trim:         bool          = True,
+    force:        bool          = False,
+    mineways_cmd: Optional[str] = None,
+    blender_cmd:  Optional[str] = None,
+    verbose:      bool          = False,
+  )
+  ```
+  The "main" function of mcrender. Essentially works just like the [command-line interface](#usage---cli): the parameters mirror the CLI arguments and options.
+  If `mineways_cmd` or `blender_cmd` is set to `None`, the command from the config file will be used.
+
+- ```python
+  def mineways_make_obj(
+    output_dir_path: str,
+    output_name:     str,
+    world_path:      str,
+    x:               int,
+    y:               int,
+    z:               int,
+    size_x:          int,
+    size_y:          int,
+    size_z:          int,
+    rotation:        int           = 0,
+    mineways_cmd:    Optional[str] = None
+  )
+  ```
+  Does only the Mineways part: creates an OBJ model of a Minecraft world snippet.
+  The output OBJ file is written to `<output_dir_path>/<output_name>.obj`.
+  Auxillary model files (like textures) are written to `<output_dir_path>`.
+
+- ```python
+  def blender_render_obj(
+    output_path: str,
+    obj_path:    str,
+    exposure:    float         = 0,
+    trim:        bool          = True,
+    force:       bool          = False,
+    blender_cmd: Optional[str] = None
+  )
+  ```
+  Does only the Blender part: renders an OBJ file (as created by Mineways) to a PNG image.
+
+
+### Exceptions
+
+There's a lot that can go wrong when dealing with external programs and the filesystem. The core functions described above can raise the following exceptions:
+
+- `MCRenderError`\
+  Base class for all mcrender exceptions.
+
+- `ConfigAccessError`\
+  Raised when the config file cannot be accessed.
+
+- `MinewaysCommandNotSetError`\
+  Raised when the Mineways command is not set.
+
+- `MinewaysLaunchError`\
+  Raised when the Mineways command cannot be launched.
+
+- `MinewaysError`\
+  Raised when Mineways returns an error.
+
+- `MinewaysBadWorldError`\
+  Raised when Mineways cannot load the world.
+
+- `BlenderCommandNotSetError`\
+  Raised when the Blender command is not set.
+
+- `BlenderLaunchError`\
+  Raised when the Blender command cannot be launched.
+
+- `BlenderError`\
+  Raised when Blender returns an error.
+
+- `OutputFileExistsError`\
+  Raised when an output file or directory already exists and cannot be overwritten.
+
+In some circumstances, the core functions may also raise built-in exceptions such as `OSError`.
+
+
+### Miscellaneous
+
+- `CONFIG_PATH`\
+  Path of the config file on the current operating system.
+
+- `ensure_config_file()`\
+  Creates a default config file if it doesn't exist.\
+  Raises a ConfigAccessError if creation fails.\
+  Note that the core functions will already call this if they need the config file.
+
+### Example usage
+```python
+import mcrender
+
+mcrender.render(
+  "output.png",
+  "/path/to/minecraft-world",
+  0, 60, 0,
+  64, 128, 64
+)
+```
 
 
 # Alternatives
