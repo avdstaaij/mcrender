@@ -28,13 +28,20 @@ def move(src_path: str, dst_path: str, overwrite: bool = False, never_overwrite_
     if os.path.isfile(dst_path):
         if not overwrite:
             raise FileExistsError(f"File {dst_path} already exists.")
-        os.remove(dst_path)
+        try:
+            shutil.move(src_path, dst_path)
+        except FileExistsError:
+            os.remove(dst_path)
+            shutil.move(src_path, dst_path)
+        return
 
-    elif os.path.isdir(dst_path):
+    if os.path.isdir(dst_path):
         if never_overwrite_dir:
             raise FileExistsError(f"Not overwriting directory {dst_path}")
         if not overwrite:
             raise FileExistsError(f"Directory {dst_path} already exists.")
         shutil.rmtree(dst_path)
+        shutil.move(src_path, dst_path)
+        return
 
     shutil.move(src_path, dst_path)
