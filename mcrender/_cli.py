@@ -43,16 +43,24 @@ def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[
 # because otherwise you need to use "--" to pass negative numbers, which is
 # quite unintuitive. For consistency, we take the size as an option as well.
 
+epilog = (
+    f"*: Dimension options: {{{', '.join(mcrender.DIMENSIONS)}}}\n"
+    "\n"
+    "**: The render is always created at a resolution of 2048x2048 pixels, but the model may not be square. If `--trim` is set (which it is by default), the image is trimmed down to the model's bounding box. Otherwise, the model will be centered in the image.\n"
+    "\n"
+    f"Config file location: {mcrender.CONFIG_PATH}\n"
+)
+
 # pylint: disable=no-value-for-parameter
-@cloup.command(context_settings={"show_default": True}, epilog=f"Config file location: {mcrender.CONFIG_PATH}")
+@cloup.command(context_settings={"show_default": True}, epilog=epilog)
 @cloup.argument("world-path",  metavar="<world path>",  type=cloup.Path(exists=True, file_okay=False))
 @cloup.argument("output-path", metavar="<output path>", type=cloup.Path())
 @cloup.option("--pos",  "-p",     metavar=" <x> <y> <z>", help="Render-box corner",                           type=int, nargs=3, multiple=True)
 @cloup.option("--size", "-s",     metavar="<x> <y> <z>",  help="Render-box size",                             type=int, nargs=3)
 @cloup.option("--rotation",       metavar="{0,1,2,3}",    help="Rotation of the camera.",                     type=int, default=0)
-@cloup.option("--dimension",      metavar="<id>",         help="World dimension",                             type=str, default="overworld")
+@cloup.option("--dimension",      metavar="<id>",         help="World dimension.*",                           type=str, default="overworld")
 @cloup.option("--exposure",       metavar="<float>",      help="Exposure for post-processing.",               type=float, default=0)
-@cloup.option("--trim/--no-trim",                         help="Trim the output image.",                      default=True)
+@cloup.option("--trim/--no-trim",                         help="Trim the output image.**",                    default=True)
 @cloup.option("--force", "-f",                            help="Overwrite any existing file at output path.", is_flag=True)
 @cloup.option("--mineways-cmd",   metavar="<cmd>",        help="Command to run Mineways.",                    type=str)
 @cloup.option("--blender-cmd",    metavar="<cmd>",        help="Command to run Blender.",                     type=str)
