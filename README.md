@@ -1,4 +1,6 @@
-# mcrender
+# mcrender - Automatable Minecraft rendering
+
+![Banner](assets/banner.webp)
 
 Command-line tool and Python library for creating isometric Minecraft renders.
 
