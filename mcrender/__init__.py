@@ -10,7 +10,7 @@ __author__           = "Arthur van der Staaij"
 __author_email__     = "arthurvanderstaaij@gmail.com"
 __license__          = "GPL-3.0-or-later"
 __copyright__        = "Copyright (c) 2023 Arthur van der Staaij"
-__version__          = "0.1.0"
+__version__          = "1.0.0"
 
 
 # ==================================================================================================
