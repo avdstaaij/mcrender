@@ -3,6 +3,8 @@
 - BREAKING: Dropped support for Blender versions < 4.0.0 and added support for
   versons >= 4.0.0.
 
+- NEW: Added support for negative sizes in the CLI.
+
 
 # 1.0.1
 

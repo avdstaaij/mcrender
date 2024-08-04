@@ -24,7 +24,17 @@ def parse_box_spec(pos: Tuple[Tuple[int]], size: Optional[Tuple[int]]) -> Tuple[
     if len(pos) == 1:
         if size is None:
             raise_box_spec_error()
-        return *pos[0], *size
+
+        pos  = list(pos[0])
+        size = list(size)
+        for i in range(3):
+            if size[i] == 0:
+                raise UsageError(f"The box to render has size 0 in the {['X', 'Y', 'Z'][i]}-axis.")
+            if size[i] < 0:
+                pos[i] += size[i]
+                size[i] = -size[i]
+
+        return *pos, *size
 
     if len(pos) == 2:
         if size is not None:
