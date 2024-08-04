@@ -17,9 +17,9 @@ It is available on PyPI, and can be installed with `pip`:
 python3 -m pip install mcrender
 ```
 
-mcrender depends on [Mineways](https://www.realtimerendering.com/erich/minecraft/public/mineways/) and [Blender](https://www.blender.org/), which need to be installed manually. Mineways is Windows-only, so if you're not on Windows, you will also need [Wine](https://www.winehq.org/).
+mcrender depends on [Mineways](https://www.realtimerendering.com/erich/minecraft/public/mineways/) and [Blender](https://www.blender.org/) (version >= 4.0.0), which need to be installed manually. Mineways is Windows-only, so if you're not on Windows, you will also need [Wine](https://www.winehq.org/).
 
-mcrender has been tested with Mineways 11.0 and Blender 3.6.2, but is expected to work with any previous or future versions with similar APIs. Blender versions before 2.8 are not supported.
+mcrender has been tested with Mineways 11.0 and Blender 4.2.0, but is expected to work with any future versions with similar APIs.
 
 In addition, mcrender needs to know how it can access these dependencies: you need to specify commands that will run Mineways and Blender on your system.
 It is possible to specify these commands every time you call mcrender, but it is recommended to set default commands in mcrender's config file.

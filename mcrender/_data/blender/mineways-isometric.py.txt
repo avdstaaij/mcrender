@@ -24,7 +24,7 @@ def parse_args():
 
 def mc_import(obj_path: str):
     bpy.ops.object.select_all(action='DESELECT')
-    bpy.ops.import_scene.obj(filepath=obj_path)
+    bpy.ops.wm.obj_import(filepath=obj_path)
     bpy.context.view_layer.objects.active = bpy.context.selected_objects[0]
 
 
