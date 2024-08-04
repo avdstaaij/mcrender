@@ -67,7 +67,7 @@ setup(
     install_requires=[
         "cloup >= 3.0.0",
         "Pillow",
-        "platformdirs",
+        "platformdirs >= 3.2.0",
     ],
     zip_safe=False
 )
