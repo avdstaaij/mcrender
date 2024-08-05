@@ -1,4 +1,4 @@
-# In development
+# 2.0.0
 
 - BREAKING: Dropped support for Blender versions < 4.0.0 and added support for
   versons >= 4.0.0.
